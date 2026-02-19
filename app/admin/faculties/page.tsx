@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { RegisterFacultyModal } from '@/components/admin/register-faculty-modal';
+import { FacultyForm } from '@/components/admin/faculty-form';
 
 interface Faculty {
   id: string;
@@ -35,9 +35,8 @@ export default function FacultiesPage() {
     setFaculties(faculties.filter((f) => f.id !== id));
   };
 
-  const handleFacultyRegistered = () => {
-    // Optionally refresh faculty list from API
-    setShowForm(false);
+  const handleDeleteFaculty = (id: string) => {
+    setFaculties(faculties.filter((f) => f.id !== id));
   };
 
   return (
@@ -119,9 +118,10 @@ export default function FacultiesPage() {
       )}
 
       {showForm && (
-        <RegisterFacultyModal
+        <FacultyForm
           onClose={() => setShowForm(false)}
-          onSuccess={handleFacultyRegistered}
+          onSubmit={() => setShowForm(false)}
+          isLoading={isLoading}
         />
       )}
     </div>

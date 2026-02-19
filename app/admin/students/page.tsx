@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { RegisterStudentModal } from '@/components/admin/register-student-modal';
+import { StudentForm } from '@/components/admin/student-form';
 
 interface Student {
   id: string;
@@ -36,10 +36,7 @@ export default function StudentsPage() {
     setStudents(students.filter((s) => s.id !== id));
   };
 
-  const handleStudentRegistered = () => {
-    // Optionally refresh student list from API
-    setShowForm(false);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -132,9 +129,10 @@ export default function StudentsPage() {
       )}
 
       {showForm && (
-        <RegisterStudentModal
+        <StudentForm
           onClose={() => setShowForm(false)}
-          onSuccess={handleStudentRegistered}
+          onSubmit={() => setShowForm(false)}
+          isLoading={isLoading}
         />
       )}
     </div>
