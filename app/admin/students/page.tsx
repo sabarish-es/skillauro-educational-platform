@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { StudentForm, StudentData } from '@/components/admin/student-form';
+import { RegisterStudentModal } from '@/components/admin/register-student-modal';
 
 interface Student {
   id: string;
@@ -36,27 +36,9 @@ export default function StudentsPage() {
     setStudents(students.filter((s) => s.id !== id));
   };
 
-  const handleAddStudent = async (data: StudentData) => {
-    setIsLoading(true);
-    try {
-      // API call will be integrated here
-      const newStudent: Student = {
-        id: Date.now().toString(),
-        name: data.name,
-        email: data.email,
-        enrollmentNumber: data.enrollmentNumber,
-        batch: data.batch,
-        phone: data.phone,
-        enrolledCourses: 0,
-        feesPaid: false,
-      };
-      setStudents([...students, newStudent]);
-      setShowForm(false);
-    } catch (error) {
-      console.error('Error adding student:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleStudentRegistered = () => {
+    // Optionally refresh student list from API
+    setShowForm(false);
   };
 
   return (
@@ -150,10 +132,9 @@ export default function StudentsPage() {
       )}
 
       {showForm && (
-        <StudentForm
+        <RegisterStudentModal
           onClose={() => setShowForm(false)}
-          onSubmit={handleAddStudent}
-          isLoading={isLoading}
+          onSuccess={handleStudentRegistered}
         />
       )}
     </div>

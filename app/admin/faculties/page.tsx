@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { FacultyForm, FacultyData } from '@/components/admin/faculty-form';
+import { RegisterFacultyModal } from '@/components/admin/register-faculty-modal';
 
 interface Faculty {
   id: string;
@@ -35,26 +35,9 @@ export default function FacultiesPage() {
     setFaculties(faculties.filter((f) => f.id !== id));
   };
 
-  const handleAddFaculty = async (data: FacultyData) => {
-    setIsLoading(true);
-    try {
-      // API call will be integrated here
-      const newFaculty: Faculty = {
-        id: Date.now().toString(),
-        name: data.name,
-        email: data.email,
-        department: data.department,
-        specialization: data.specialization,
-        phone: data.phone,
-        courses: 0,
-      };
-      setFaculties([...faculties, newFaculty]);
-      setShowForm(false);
-    } catch (error) {
-      console.error('Error adding faculty:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleFacultyRegistered = () => {
+    // Optionally refresh faculty list from API
+    setShowForm(false);
   };
 
   return (
@@ -136,10 +119,9 @@ export default function FacultiesPage() {
       )}
 
       {showForm && (
-        <FacultyForm
+        <RegisterFacultyModal
           onClose={() => setShowForm(false)}
-          onSubmit={handleAddFaculty}
-          isLoading={isLoading}
+          onSuccess={handleFacultyRegistered}
         />
       )}
     </div>

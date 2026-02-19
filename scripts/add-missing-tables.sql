@@ -18,7 +18,11 @@ CREATE TABLE IF NOT EXISTS students (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Add user_id field to users table for unique login identifier
+ALTER TABLE users ADD COLUMN IF NOT EXISTS user_id VARCHAR(50) UNIQUE DEFAULT NULL COMMENT 'Unique user ID for login (auto-generated)';
+
 -- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_faculties_user_id ON faculties(user_id);
-CREATE INDEX IF NOT EXISTS idx_students_user_id ON students(user_id);
-CREATE INDEX IF NOT EXISTS idx_students_enrollment ON students(enrollment_number);
+CREATE INDEX idx_faculties_user_id ON faculties(user_id);
+CREATE INDEX idx_students_user_id ON students(user_id);
+CREATE INDEX idx_students_enrollment ON students(enrollment_number);
+CREATE INDEX idx_users_user_id ON users(user_id);
