@@ -1,0 +1,329 @@
+================================================================================
+SKILLAURO EDUCATIONAL PLATFORM - DOWNLOAD & SETUP INSTRUCTIONS
+================================================================================
+
+QUICK DOWNLOAD & SETUP (Just 5 Steps!)
+================================================================================
+
+STEP 1: DOWNLOAD THE ZIP FILE
+   - Click the three dots (⋮) in the top right corner of the v0 interface
+   - Select "Download ZIP"
+   - Wait for the download to complete
+   - File will be in your Downloads folder
+
+STEP 2: EXTRACT THE ZIP
+   - Windows: Right-click → Extract All → Choose location → Extract
+   - Mac: Double-click the ZIP file (auto-extracts)
+   - Linux: unzip skillauro-educational-platform.zip
+
+STEP 3: INSTALL DEPENDENCIES
+   - Open terminal/command prompt in the project folder
+   - Run: npm install
+   - Wait for installation to complete (2-5 minutes)
+
+STEP 4: CONFIGURE DATABASE
+   - Copy .env.example to .env.local (in same folder)
+   - Edit .env.local and fill in your MySQL credentials:
+     * DB_HOST=localhost
+     * DB_USER=root
+     * DB_PASSWORD=your_password
+     * DB_NAME=skillauro
+   - Create MySQL database: CREATE DATABASE skillauro;
+   - Run migrations from scripts/ folder
+
+STEP 5: START THE SERVER
+   - In project terminal: npm run dev
+   - Open browser: http://localhost:3000
+   - You're done! ✅
+
+================================================================================
+PROJECT CONTENTS - WHAT YOU'RE DOWNLOADING
+================================================================================
+
+✅ Complete Next.js Application
+   - Full source code
+   - All components and pages
+   - API endpoints
+   - Authentication system
+   - Payment integration (Razorpay)
+   - Email notifications
+
+✅ Database
+   - MySQL migration scripts
+   - Table definitions
+   - User management structure
+   - Fee tracking system
+   - Comprehensive schema
+
+✅ Three User Portals
+   - Admin Dashboard - Manage everything
+   - Faculty Portal - Teach and manage courses
+   - Student Portal - Enroll, pay, and learn
+
+✅ Complete Documentation
+   - START_HERE_FIRST.md - Overview (read first!)
+   - DOWNLOAD_AND_SETUP.md - Step-by-step setup
+   - INSTALL_AND_RUN.md - Technical details
+   - SETUP_CHECKLIST.md - Track your progress
+   - SETUP_GUIDE.md - Configuration reference
+   - QUICK_START.md - Quick commands
+   - DOCUMENTATION.md - Full documentation index
+   - And more!
+
+✅ Ready to Use Features
+   - User registration system
+   - Auto-generated user IDs
+   - Email credential delivery
+   - Login with email or user ID
+   - Course management
+   - Fee payment tracking
+   - Razorpay integration
+   - Attendance system
+   - Assessment management
+   - Contact form with email
+   - Notification system
+
+================================================================================
+SYSTEM REQUIREMENTS
+================================================================================
+
+Before you download, make sure you have:
+
+✓ Node.js v16 or higher (check: node -v)
+✓ npm or yarn (check: npm -v)
+✓ MySQL 5.7 or higher (download from mysql.com)
+✓ 500MB free disk space
+✓ 2GB RAM minimum
+✓ Code editor (VS Code recommended)
+
+Windows users: Download MySQL from https://dev.mysql.com/downloads/mysql/
+Mac users: Use Homebrew (brew install mysql) or download from mysql.com
+Linux users: apt-get install mysql-server
+
+================================================================================
+ESSENTIAL FILES IN THE PROJECT
+================================================================================
+
+Documentation (Read these first):
+├── START_HERE_FIRST.md .................. Read this first! (Quick overview)
+├── DOWNLOAD_AND_SETUP.md ............... Complete setup guide
+├── SETUP_CHECKLIST.md .................. Progress tracking
+├── DOCUMENTATION.md .................... Full documentation index
+├── INSTALL_AND_RUN.md .................. Technical details
+├── SETUP_GUIDE.md ...................... Configuration guide
+├── QUICK_START.md ...................... Quick commands reference
+└── README.md ........................... Project overview
+
+Configuration (You'll create these):
+├── .env.example ........................ Copy to .env.local
+└── .env.local .......................... Create this! (Database credentials)
+
+Source Code:
+├── app/ ............................... Next.js pages
+├── components/ ........................ React components
+├── lib/ ............................... Utility functions
+├── scripts/ ........................... Database migrations
+└── public/ ............................ Images and static files
+
+Dependencies:
+└── package.json ....................... Will install with npm install
+
+================================================================================
+AFTER DOWNLOADING - YOUR TODO LIST
+================================================================================
+
+1. Extract the ZIP file
+2. Read START_HERE_FIRST.md
+3. Run: npm install
+4. Create .env.local (copy from .env.example)
+5. Fill in database credentials
+6. Create MySQL database
+7. Run database migrations
+8. Run: npm run dev
+9. Open: http://localhost:3000
+10. Create admin account
+11. Start using the platform!
+
+================================================================================
+DOCUMENTATION READING ORDER
+================================================================================
+
+If you're new to this:
+
+1. START_HERE_FIRST.md (5 minutes)
+   - Quick overview of what you have
+   - 5-step quick start
+   - System requirements
+
+2. DOWNLOAD_AND_SETUP.md (15 minutes)
+   - Step-by-step download instructions
+   - Complete setup process
+   - Database configuration
+   - Creating user accounts
+
+3. SETUP_CHECKLIST.md (Use while setting up)
+   - Check off each step as you complete
+   - Verify your installation
+   - Common issues & solutions
+
+Then start using the application!
+
+================================================================================
+IMPORTANT REMINDERS
+================================================================================
+
+⚠️ DO NOT SHARE:
+   - .env.local file (contains passwords and API keys)
+   - Your database password
+   - Your email password
+   - Your Razorpay keys
+
+✓ DO SHARE:
+   - The entire project folder
+   - .env.example file (for templates)
+   - All source code files
+   - Documentation files
+
+✓ BEFORE GOING TO PRODUCTION:
+   - Change NEXTAUTH_SECRET to a new random string
+   - Update to Razorpay LIVE keys (not test keys)
+   - Update to production MySQL database
+   - Update to Gmail App Password
+   - Change NODE_ENV to production
+   - Test thoroughly
+
+================================================================================
+GETTING HELP
+================================================================================
+
+1. Check the relevant documentation file
+2. Review the SETUP_CHECKLIST.md troubleshooting section
+3. Check error messages in the terminal
+4. Verify .env.local has correct credentials
+5. Make sure MySQL is running
+6. Make sure Node.js is v16 or higher
+
+Most problems are resolved by:
+- Checking .env.local credentials
+- Verifying MySQL is running
+- Running npm install again
+- Clearing node_modules and reinstalling
+
+================================================================================
+QUICK LINKS
+================================================================================
+
+MySQL Download: https://dev.mysql.com/downloads/mysql/
+Node.js Download: https://nodejs.org/
+VS Code Download: https://code.visualstudio.com/
+Gmail App Password: https://myaccount.google.com/apppasswords
+Razorpay: https://razorpay.com/
+
+================================================================================
+PROJECT STRUCTURE AT A GLANCE
+================================================================================
+
+skillauro-educational-platform/
+├── Documentation Files (Read these!)
+├── Configuration Files (.env.example, package.json, etc)
+├── app/ (Next.js pages)
+│   ├── admin/ (Admin portal)
+│   ├── faculty/ (Faculty portal)
+│   ├── student/ (Student portal)
+│   ├── api/ (API endpoints)
+│   └── login/ (Login page)
+├── components/ (React components)
+├── lib/ (Utilities)
+├── scripts/ (Database scripts)
+└── public/ (Images)
+
+================================================================================
+WHAT HAPPENS WHEN YOU RUN npm install
+================================================================================
+
+The command will:
+1. Read package.json to see what's needed
+2. Download all required packages
+3. Install them in node_modules folder
+4. Create/update package-lock.json
+5. Complete with "added XXX packages" message
+
+This takes 2-5 minutes depending on internet speed.
+
+================================================================================
+WHAT HAPPENS WHEN YOU RUN npm run dev
+================================================================================
+
+The command will:
+1. Start Next.js development server
+2. Compile all files
+3. Start watching for changes
+4. Open server on http://localhost:3000
+5. Show you the URL where the app is running
+
+The server stays running until you press Ctrl+C.
+
+================================================================================
+DATABASE MIGRATION PROCESS
+================================================================================
+
+Three SQL files run in order:
+
+1. 01_create_tables.sql
+   - Creates all database tables
+   - Sets up structure
+   - Creates indexes
+
+2. 02_insert_sample_data.sql
+   - Currently empty (no demo data)
+   - You'll add data manually
+
+3. add-missing-tables.sql
+   - Creates additional tables
+   - Sets up user_id columns
+   - Fixes any missing pieces
+
+================================================================================
+ENVIRONMENT VARIABLES EXPLAINED
+================================================================================
+
+DB_HOST ..................... MySQL server location (localhost)
+DB_PORT ..................... MySQL port (3306)
+DB_USER ..................... MySQL username (root)
+DB_PASSWORD ................. MySQL password (what you set during MySQL install)
+DB_NAME ..................... Database name (skillauro)
+EMAIL_SERVICE ............... Gmail or other (gmail)
+EMAIL_USER .................. Your email (your_email@gmail.com)
+EMAIL_PASSWORD .............. Gmail App Password (16-character password from Gmail)
+RAZORPAY_KEY_ID ............ From Razorpay dashboard
+RAZORPAY_KEY_SECRET ........ From Razorpay dashboard
+NEXTAUTH_SECRET ............ Random secure string (generated)
+NEXTAUTH_URL ............... Application URL (http://localhost:3000)
+NODE_ENV ................... development or production
+NEXT_PUBLIC_API_URL ........ API endpoint URL
+
+================================================================================
+READY TO GET STARTED?
+================================================================================
+
+1. Download the ZIP (click three dots in v0)
+2. Extract the files
+3. Follow the 5-step setup in START_HERE_FIRST.md
+4. Run: npm install
+5. Configure: .env.local
+6. Run: npm run dev
+7. Open: http://localhost:3000
+8. Enjoy your educational platform! 🚀
+
+================================================================================
+THANK YOU FOR USING SKILLAURO!
+================================================================================
+
+All files are ready. Everything is included. Complete documentation provided.
+
+Questions? Check the documentation files first!
+Stuck? Review SETUP_CHECKLIST.md or DOWNLOAD_AND_SETUP.md!
+Ready for production? Read DEPLOYMENT_GUIDE.md!
+
+Let's get started! 🚀
+================================================================================
