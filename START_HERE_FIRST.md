@@ -48,12 +48,33 @@ mysql -h localhost -u root -p skillauro < scripts/02_insert_sample_data.sql
 mysql -h localhost -u root -p skillauro < scripts/add-missing-tables.sql
 ```
 
-### 5️⃣ Start the Server
+### 5️⃣ Create Default Admin User
+After running the migrations, create the admin account:
+```bash
+mysql -h localhost -u root -p skillauro < scripts/03_create_default_admin.sql
+```
+
+### 6️⃣ Start the Server
 ```bash
 npm run dev
 ```
 
 Open `http://localhost:3000` in your browser ✅
+
+---
+
+## 🔑 Default Admin Credentials
+
+After running script `03_create_default_admin.sql`, login with:
+
+- **Email:** admin@skillauro.in
+- **User ID:** ADM0001
+- **Password:** Admin@2024
+- **Role:** Admin
+
+**⚠️ IMPORTANT:** Change this password immediately after first login!
+
+See **ADMIN_CREDENTIALS.md** for complete admin setup guide.
 
 ---
 

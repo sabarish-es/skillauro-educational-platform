@@ -78,11 +78,15 @@ NODE_ENV=development
 ### 3.3 Run Database Migrations
 Execute the SQL migration scripts to create tables:
 
-**Option A: Using MySQL CLI**
+**Option A: Using MySQL CLI** (Recommended)
 ```bash
+# Run migrations
 mysql -h localhost -u root -p skillauro < scripts/01_create_tables.sql
 mysql -h localhost -u root -p skillauro < scripts/02_insert_sample_data.sql
 mysql -h localhost -u root -p skillauro < scripts/add-missing-tables.sql
+
+# Create default admin user
+mysql -h localhost -u root -p skillauro < scripts/03_create_default_admin.sql
 ```
 
 **Option B: Using MySQL Workbench**
@@ -91,11 +95,27 @@ mysql -h localhost -u root -p skillauro < scripts/add-missing-tables.sql
    - `01_create_tables.sql`
    - `02_insert_sample_data.sql`
    - `add-missing-tables.sql`
+   - `03_create_default_admin.sql` ← **Important: Don't forget this!**
 3. Execute each script in sequence
 
 **Option C: Using Node.js Script**
 ```bash
 node scripts/run-migrations.js
+```
+
+### 3.4 Verify Admin User Creation
+Check that the admin account was created successfully:
+```bash
+mysql -h localhost -u root -p skillauro -e "SELECT id, email, user_id, name, role FROM users WHERE role = 'admin';"
+```
+
+You should see:
+```
++----+-------------------+---------+---------------+-------+
+| id | email             | user_id | name          | role  |
++----+-------------------+---------+---------------+-------+
+|  1 | admin@skillauro.in| ADM0001 | Administrator | admin |
++----+-------------------+---------+---------------+-------+
 ```
 
 ## Step 4: Start the Development Server
@@ -117,16 +137,21 @@ You should see:
 Open your browser and go to: `http://localhost:3000/login`
 
 ### Default Admin Account
-After running migrations, you can create an admin account:
-- Role: Admin
-- Email: admin@skillauro.in
-- Password: (You will set this during first-time setup)
+After running the migration `03_create_default_admin.sql`, use these credentials:
 
-To create the first admin user, use the direct database method:
-```sql
-INSERT INTO users (email, user_id, password, name, role, status) 
-VALUES ('admin@skillauro.in', 'ADM0001', 'hashed_password_here', 'Admin', 'admin', 'active');
-```
+- **Email:** admin@skillauro.in
+- **User ID:** ADM0001
+- **Password:** Admin@2024
+- **Role:** Admin (select from dropdown)
+
+**Steps to login:**
+1. Go to `http://localhost:3000/login`
+2. Enter "admin@skillauro.in" or "ADM0001" in the Email/User ID field
+3. Enter "Admin@2024" in the Password field
+4. Select "Admin" from the Role dropdown
+5. Click Login
+
+**⚠️ IMPORTANT:** Change the default password immediately after first login!
 
 ### User Roles & Portals
 
