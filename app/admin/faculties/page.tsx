@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { FacultyForm, FacultyData } from '@/components/admin/faculty-form';
 
 interface Faculty {
   id: string;
@@ -15,48 +16,13 @@ interface Faculty {
   courses: number;
 }
 
-const initialFaculties: Faculty[] = [
-  {
-    id: '1',
-    name: 'Dr. Raj Kumar',
-    email: 'raj.kumar@skillauro.com',
-    department: 'Computer Science',
-    specialization: 'Web Development',
-    phone: '9876543210',
-    courses: 3,
-  },
-  {
-    id: '2',
-    name: 'Ms. Priya Verma',
-    email: 'priya.verma@skillauro.com',
-    department: 'Computer Science',
-    specialization: 'React & JavaScript',
-    phone: '9876543211',
-    courses: 2,
-  },
-  {
-    id: '3',
-    name: 'Prof. Arun Singh',
-    email: 'arun.singh@skillauro.com',
-    department: 'Computer Science',
-    specialization: 'Backend Development',
-    phone: '9876543212',
-    courses: 4,
-  },
-  {
-    id: '4',
-    name: 'Dr. Meera Gupta',
-    email: 'meera.gupta@skillauro.com',
-    department: 'Data Science',
-    specialization: 'Python & AI/ML',
-    phone: '9876543213',
-    courses: 2,
-  },
-];
+const initialFaculties: Faculty[] = [];
 
 export default function FacultiesPage() {
   const [faculties, setFaculties] = useState(initialFaculties);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const filteredFaculties = faculties.filter(
     (f) =>
@@ -69,12 +35,37 @@ export default function FacultiesPage() {
     setFaculties(faculties.filter((f) => f.id !== id));
   };
 
+  const handleAddFaculty = async (data: FacultyData) => {
+    setIsLoading(true);
+    try {
+      // API call will be integrated here
+      const newFaculty: Faculty = {
+        id: Date.now().toString(),
+        name: data.name,
+        email: data.email,
+        department: data.department,
+        specialization: data.specialization,
+        phone: data.phone,
+        courses: 0,
+      };
+      setFaculties([...faculties, newFaculty]);
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error adding faculty:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Faculties</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+        <Button
+          onClick={() => setShowForm(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Faculty
         </Button>
@@ -142,6 +133,14 @@ export default function FacultiesPage() {
         <Card className="p-8 text-center">
           <p className="text-gray-600">No faculties found matching your search.</p>
         </Card>
+      )}
+
+      {showForm && (
+        <FacultyForm
+          onClose={() => setShowForm(false)}
+          onSubmit={handleAddFaculty}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );

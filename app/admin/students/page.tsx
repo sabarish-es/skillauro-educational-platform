@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { StudentForm, StudentData } from '@/components/admin/student-form';
 
 interface Student {
   id: string;
@@ -16,52 +17,13 @@ interface Student {
   feesPaid: boolean;
 }
 
-const initialStudents: Student[] = [
-  {
-    id: '1',
-    name: 'Arjun Singh',
-    email: 'arjun.singh@student.com',
-    enrollmentNumber: 'STU001',
-    batch: '2024-2026',
-    phone: '9876543220',
-    enrolledCourses: 4,
-    feesPaid: true,
-  },
-  {
-    id: '2',
-    name: 'Anjali Sharma',
-    email: 'anjali.sharma@student.com',
-    enrollmentNumber: 'STU002',
-    batch: '2024-2026',
-    phone: '9876543221',
-    enrolledCourses: 3,
-    feesPaid: true,
-  },
-  {
-    id: '3',
-    name: 'Rahul Patel',
-    email: 'rahul.patel@student.com',
-    enrollmentNumber: 'STU003',
-    batch: '2024-2026',
-    phone: '9876543222',
-    enrolledCourses: 4,
-    feesPaid: false,
-  },
-  {
-    id: '4',
-    name: 'Neha Verma',
-    email: 'neha.verma@student.com',
-    enrollmentNumber: 'STU004',
-    batch: '2024-2026',
-    phone: '9876543223',
-    enrolledCourses: 3,
-    feesPaid: true,
-  },
-];
+const initialStudents: Student[] = [];
 
 export default function StudentsPage() {
   const [students, setStudents] = useState(initialStudents);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const filteredStudents = students.filter(
     (s) =>
@@ -74,12 +36,38 @@ export default function StudentsPage() {
     setStudents(students.filter((s) => s.id !== id));
   };
 
+  const handleAddStudent = async (data: StudentData) => {
+    setIsLoading(true);
+    try {
+      // API call will be integrated here
+      const newStudent: Student = {
+        id: Date.now().toString(),
+        name: data.name,
+        email: data.email,
+        enrollmentNumber: data.enrollmentNumber,
+        batch: data.batch,
+        phone: data.phone,
+        enrolledCourses: 0,
+        feesPaid: false,
+      };
+      setStudents([...students, newStudent]);
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error adding student:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Students</h1>
-        <Button className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+        <Button
+          onClick={() => setShowForm(true)}
+          className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Student
         </Button>
@@ -159,6 +147,14 @@ export default function StudentsPage() {
         <Card className="p-8 text-center">
           <p className="text-gray-600">No students found matching your search.</p>
         </Card>
+      )}
+
+      {showForm && (
+        <StudentForm
+          onClose={() => setShowForm(false)}
+          onSubmit={handleAddStudent}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );
