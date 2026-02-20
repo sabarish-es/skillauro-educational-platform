@@ -77,10 +77,6 @@ export default function FacultiesPage() {
     setFaculties(faculties.filter((f) => f.id !== id));
   };
 
-  const handleDeleteFaculty = (id: string) => {
-    setFaculties(faculties.filter((f) => f.id !== id));
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}

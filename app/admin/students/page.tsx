@@ -78,8 +78,6 @@ export default function StudentsPage() {
     setStudents(students.filter((s) => s.id !== id));
   };
 
-
-
   return (
     <div className="space-y-6">
       {/* Header */}

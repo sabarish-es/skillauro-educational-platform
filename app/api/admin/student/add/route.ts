@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
-import { generateUserId } from '@/lib/user-id-generator';
+import { generateStudentUserId } from '@/lib/user-id-generator';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       database: process.env.DB_NAME,
     });
 
-    const userId = generateUserId('student');
+    const userId = generateStudentUserId();
     const tempPassword = 'TempPass@2024';
 
     const [result] = await connection.execute(

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
        LEFT JOIN faculties f ON u.id = f.user_id
        WHERE u.role = 'faculty'
        ORDER BY u.created_at DESC`
-    );
+    ) as any;
 
     await connection.end();
 
