@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StudentForm } from '@/components/admin/student-form';
 
 interface Student {
@@ -23,7 +23,49 @@ export default function StudentsPage() {
   const [students, setStudents] = useState(initialStudents);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/student/list');
+        if (response.ok) {
+          const data = await response.json();
+          setStudents(data.students || []);
+        }
+      } catch (err) {
+        console.error('Error fetching students:', err);
+        setError('Failed to load students');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  const handleFormClose = () => {
+    setShowForm(false);
+  };
+
+  const handleFormSubmit = () => {
+    setShowForm(false);
+    // Refresh the student list
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch('/api/admin/student/list');
+        if (response.ok) {
+          const data = await response.json();
+          setStudents(data.students || []);
+        }
+      } catch (err) {
+        console.error('Error fetching students:', err);
+      }
+    };
+    fetchStudents();
+  };
 
   const filteredStudents = students.filter(
     (s) =>
@@ -122,16 +164,28 @@ export default function StudentsPage() {
         </div>
       </Card>
 
-      {filteredStudents.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-gray-600">No students found matching your search.</p>
+      {error && (
+        <Card className="p-4 bg-red-50 border border-red-200">
+          <p className="text-red-700">{error}</p>
         </Card>
       )}
 
+      {isLoading ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">Loading students...</p>
+        </Card>
+      ) : filteredStudents.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">
+            {searchTerm ? 'No students found matching your search.' : 'No students added yet. Click "Add Student" to get started.'}
+          </p>
+        </Card>
+      ) : null}
+
       {showForm && (
         <StudentForm
-          onClose={() => setShowForm(false)}
-          onSubmit={() => setShowForm(false)}
+          onClose={handleFormClose}
+          onSubmit={handleFormSubmit}
           isLoading={isLoading}
         />
       )}

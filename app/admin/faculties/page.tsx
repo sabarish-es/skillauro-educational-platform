@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FacultyForm } from '@/components/admin/faculty-form';
 
 interface Faculty {
@@ -22,7 +22,49 @@ export default function FacultiesPage() {
   const [faculties, setFaculties] = useState(initialFaculties);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFaculties = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/faculty/list');
+        if (response.ok) {
+          const data = await response.json();
+          setFaculties(data.faculties || []);
+        }
+      } catch (err) {
+        console.error('Error fetching faculties:', err);
+        setError('Failed to load faculties');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFaculties();
+  }, []);
+
+  const handleFormClose = () => {
+    setShowForm(false);
+  };
+
+  const handleFormSubmit = () => {
+    setShowForm(false);
+    // Refresh the faculty list
+    const fetchFaculties = async () => {
+      try {
+        const response = await fetch('/api/admin/faculty/list');
+        if (response.ok) {
+          const data = await response.json();
+          setFaculties(data.faculties || []);
+        }
+      } catch (err) {
+        console.error('Error fetching faculties:', err);
+      }
+    };
+    fetchFaculties();
+  };
 
   const filteredFaculties = faculties.filter(
     (f) =>
@@ -111,16 +153,28 @@ export default function FacultiesPage() {
         </div>
       </Card>
 
-      {filteredFaculties.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-gray-600">No faculties found matching your search.</p>
+      {error && (
+        <Card className="p-4 bg-red-50 border border-red-200">
+          <p className="text-red-700">{error}</p>
         </Card>
       )}
 
+      {isLoading ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">Loading faculties...</p>
+        </Card>
+      ) : filteredFaculties.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">
+            {searchTerm ? 'No faculties found matching your search.' : 'No faculties added yet. Click "Add Faculty" to get started.'}
+          </p>
+        </Card>
+      ) : null}
+
       {showForm && (
         <FacultyForm
-          onClose={() => setShowForm(false)}
-          onSubmit={() => setShowForm(false)}
+          onClose={handleFormClose}
+          onSubmit={handleFormSubmit}
           isLoading={isLoading}
         />
       )}
