@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
+import { PasswordToggle } from '@/components/auth/password-toggle';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -117,14 +118,18 @@ export default function LoginPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <Input
-                type="password"
-                placeholder="Enter your password"
+              <PasswordToggle
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:outline-none"
-                required
+                placeholder="Enter your password"
+                className="px-4 py-2.5 border-2 border-gray-200 focus:border-blue-600"
               />
+              <Link 
+                href="/auth/forgot-password"
+                className="text-xs text-blue-600 hover:text-blue-700 mt-2 inline-block"
+              >
+                Forgot Password?
+              </Link>
             </div>
 
             {/* Login Button */}
