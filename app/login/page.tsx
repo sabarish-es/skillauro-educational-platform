@@ -10,12 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
+import { PasswordToggle } from '@/components/auth/password-toggle';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [role, setRole] = useState<'admin' | 'faculty' | 'student'>('student');
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); // Can be email or user_id
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password, role);
+      await login(identifier, password, role);
       
       // Redirect to appropriate dashboard
       if (role === 'admin') {
@@ -40,20 +41,6 @@ export default function LoginPage() {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const quickFill = (credRole: 'admin' | 'faculty' | 'student') => {
-    setRole(credRole);
-    if (credRole === 'admin') {
-      setEmail('skillauro@gmail.com');
-      setPassword('Skillauro@2026');
-    } else if (credRole === 'faculty') {
-      setEmail('faculty1@skillauro.com');
-      setPassword('Faculty@123');
-    } else {
-      setEmail('student1@skillauro.com');
-      setPassword('Student@123');
     }
   };
 
@@ -108,19 +95,22 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Email Input */}
+            {/* Email or User ID Input */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address
+                Email or User ID
               </label>
               <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                placeholder="Enter your email or user ID"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:outline-none"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Example: john@email.com or STU001
+              </p>
             </div>
 
             {/* Password Input */}
@@ -128,14 +118,18 @@ export default function LoginPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <Input
-                type="password"
-                placeholder="Enter your password"
+              <PasswordToggle
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:outline-none"
-                required
+                placeholder="Enter your password"
+                className="px-4 py-2.5 border-2 border-gray-200 focus:border-blue-600"
               />
+              <Link 
+                href="/auth/forgot-password"
+                className="text-xs text-blue-600 hover:text-blue-700 mt-2 inline-block"
+              >
+                Forgot Password?
+              </Link>
             </div>
 
             {/* Login Button */}
@@ -148,41 +142,27 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Demo Credentials */}
+          {/* Info Section */}
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-600 font-semibold mb-4">Demo Credentials:</p>
-            <div className="space-y-2">
-              {[
-                {
-                  role: 'admin' as const,
-                  email: 'skillauro@gmail.com',
-                  password: 'Skillauro@2026',
-                  label: 'Admin Account',
-                },
-                {
-                  role: 'faculty' as const,
-                  email: 'faculty1@skillauro.com',
-                  password: 'Faculty@123',
-                  label: 'Faculty Account',
-                },
-                {
-                  role: 'student' as const,
-                  email: 'student1@skillauro.com',
-                  password: 'Student@123',
-                  label: 'Student Account',
-                },
-              ].map((cred) => (
-                <button
-                  key={cred.role}
-                  type="button"
-                  onClick={() => quickFill(cred.role)}
-                  className="w-full text-left p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm"
-                >
-                  <div className="font-medium text-gray-900">{cred.label}</div>
-                  <div className="text-xs text-gray-600">{cred.email}</div>
-                </button>
-              ))}
-            </div>
+            <p className="text-sm text-gray-600 font-semibold mb-4">How to Login:</p>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">1.</span>
+                <span>Use your email address or user ID provided by admin</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">2.</span>
+                <span>Enter your password sent to your email</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">3.</span>
+                <span>Select your role (Admin, Faculty, or Student)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">4.</span>
+                <span>Click Login to access your dashboard</span>
+              </li>
+            </ul>
           </div>
         </Card>
 

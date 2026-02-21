@@ -3,7 +3,8 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { StudentForm } from '@/components/admin/student-form';
 
 interface Student {
   id: string;
@@ -16,52 +17,55 @@ interface Student {
   feesPaid: boolean;
 }
 
-const initialStudents: Student[] = [
-  {
-    id: '1',
-    name: 'Arjun Singh',
-    email: 'arjun.singh@student.com',
-    enrollmentNumber: 'STU001',
-    batch: '2024-2026',
-    phone: '9876543220',
-    enrolledCourses: 4,
-    feesPaid: true,
-  },
-  {
-    id: '2',
-    name: 'Anjali Sharma',
-    email: 'anjali.sharma@student.com',
-    enrollmentNumber: 'STU002',
-    batch: '2024-2026',
-    phone: '9876543221',
-    enrolledCourses: 3,
-    feesPaid: true,
-  },
-  {
-    id: '3',
-    name: 'Rahul Patel',
-    email: 'rahul.patel@student.com',
-    enrollmentNumber: 'STU003',
-    batch: '2024-2026',
-    phone: '9876543222',
-    enrolledCourses: 4,
-    feesPaid: false,
-  },
-  {
-    id: '4',
-    name: 'Neha Verma',
-    email: 'neha.verma@student.com',
-    enrollmentNumber: 'STU004',
-    batch: '2024-2026',
-    phone: '9876543223',
-    enrolledCourses: 3,
-    feesPaid: true,
-  },
-];
+const initialStudents: Student[] = [];
 
 export default function StudentsPage() {
   const [students, setStudents] = useState(initialStudents);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/student/list');
+        if (response.ok) {
+          const data = await response.json();
+          setStudents(data.students || []);
+        }
+      } catch (err) {
+        console.error('Error fetching students:', err);
+        setError('Failed to load students');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  const handleFormClose = () => {
+    setShowForm(false);
+  };
+
+  const handleFormSubmit = () => {
+    setShowForm(false);
+    // Refresh the student list
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch('/api/admin/student/list');
+        if (response.ok) {
+          const data = await response.json();
+          setStudents(data.students || []);
+        }
+      } catch (err) {
+        console.error('Error fetching students:', err);
+      }
+    };
+    fetchStudents();
+  };
 
   const filteredStudents = students.filter(
     (s) =>
@@ -79,7 +83,10 @@ export default function StudentsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Students</h1>
-        <Button className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+        <Button
+          onClick={() => setShowForm(true)}
+          className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Student
         </Button>
@@ -155,10 +162,30 @@ export default function StudentsPage() {
         </div>
       </Card>
 
-      {filteredStudents.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-gray-600">No students found matching your search.</p>
+      {error && (
+        <Card className="p-4 bg-red-50 border border-red-200">
+          <p className="text-red-700">{error}</p>
         </Card>
+      )}
+
+      {isLoading ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">Loading students...</p>
+        </Card>
+      ) : filteredStudents.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">
+            {searchTerm ? 'No students found matching your search.' : 'No students added yet. Click "Add Student" to get started.'}
+          </p>
+        </Card>
+      ) : null}
+
+      {showForm && (
+        <StudentForm
+          onClose={handleFormClose}
+          onSubmit={handleFormSubmit}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );

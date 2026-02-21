@@ -11,33 +11,34 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { PaymentModal } from '@/components/payment-modal';
 import { DollarSign, CreditCard } from 'lucide-react';
 
 const feeDetails = [
   {
     id: 1,
     course: 'Web Development Mastery',
-    totalFees: '₹15,000',
-    paidAmount: '₹15,000',
-    pendingAmount: '₹0',
+    totalFees: 15000,
+    paidAmount: 15000,
+    pendingAmount: 0,
     status: 'Paid',
     dueDate: '2024-02-15',
   },
   {
     id: 2,
     course: 'React Advanced',
-    totalFees: '₹12,000',
-    paidAmount: '₹8,000',
-    pendingAmount: '₹4,000',
+    totalFees: 12000,
+    paidAmount: 8000,
+    pendingAmount: 4000,
     status: 'Partial',
     dueDate: '2024-02-20',
   },
   {
     id: 3,
     course: 'Node.js Backend',
-    totalFees: '₹14,000',
-    paidAmount: '₹0',
-    pendingAmount: '₹14,000',
+    totalFees: 14000,
+    paidAmount: 0,
+    pendingAmount: 14000,
     status: 'Pending',
     dueDate: '2024-02-28',
   },
@@ -79,7 +80,7 @@ export default function StudentFeesPage() {
               <div>
                 <p className="text-sm text-gray-600 font-medium">Total Fees</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  ₹{(totalFees / 1000).toFixed(0)}K
+                  ₹{totalFees.toLocaleString()}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-blue-600 opacity-20" />
@@ -93,7 +94,7 @@ export default function StudentFeesPage() {
               <div>
                 <p className="text-sm text-gray-600 font-medium">Paid Amount</p>
                 <p className="text-2xl font-bold text-green-600 mt-2">
-                  ₹{(totalPaid / 1000).toFixed(0)}K
+                  ₹{totalPaid.toLocaleString()}
                 </p>
               </div>
               <CreditCard className="h-8 w-8 text-green-600 opacity-20" />
@@ -107,7 +108,7 @@ export default function StudentFeesPage() {
               <div>
                 <p className="text-sm text-gray-600 font-medium">Pending Amount</p>
                 <p className="text-2xl font-bold text-red-600 mt-2">
-                  ₹{(totalPending / 1000).toFixed(0)}K
+                  ₹{totalPending.toLocaleString()}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-red-600 opacity-20" />
@@ -138,9 +139,9 @@ export default function StudentFeesPage() {
               {feeDetails.map((fee) => (
                 <TableRow key={fee.id} className="border-b">
                   <TableCell className="font-medium">{fee.course}</TableCell>
-                  <TableCell className="font-semibold">{fee.totalFees}</TableCell>
-                  <TableCell className="text-green-600 font-semibold">{fee.paidAmount}</TableCell>
-                  <TableCell className="text-red-600 font-semibold">{fee.pendingAmount}</TableCell>
+                  <TableCell className="font-semibold">₹{fee.totalFees.toLocaleString()}</TableCell>
+                  <TableCell className="text-green-600 font-semibold">₹{fee.paidAmount.toLocaleString()}</TableCell>
+                  <TableCell className="text-red-600 font-semibold">₹{fee.pendingAmount.toLocaleString()}</TableCell>
                   <TableCell className="text-sm">{fee.dueDate}</TableCell>
                   <TableCell>
                     <span
@@ -174,45 +175,19 @@ export default function StudentFeesPage() {
 
       {/* Payment Modal */}
       {showPaymentForm && selectedFee && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Pay Fees - Razorpay</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Course</p>
-                <p className="font-semibold text-gray-900">{selectedFee.course}</p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Amount to Pay</p>
-                <p className="text-2xl font-bold text-blue-600">{selectedFee.pendingAmount}</p>
-              </div>
-
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-900">
-                  Click the button below to proceed with payment via Razorpay. Your transaction is secure and encrypted.
-                </p>
-              </div>
-
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 h-12 font-semibold text-lg">
-                Pay via Razorpay
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full bg-transparent"
-                onClick={() => {
-                  setShowPaymentForm(false);
-                  setSelectedFee(null);
-                }}
-              >
-                Cancel
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <PaymentModal
+          course={selectedFee.course}
+          amount={selectedFee.pendingAmount}
+          feeId={selectedFee.id}
+          onClose={() => {
+            setShowPaymentForm(false);
+            setSelectedFee(null);
+          }}
+          onSuccess={() => {
+            console.log('Payment successful');
+            // Update UI or fetch updated fee status here
+          }}
+        />
       )}
     </div>
   );

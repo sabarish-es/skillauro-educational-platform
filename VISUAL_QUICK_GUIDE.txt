@@ -1,0 +1,371 @@
+================================================================================
+                    SKILLAURO EDUCATIONAL PLATFORM
+                        VISUAL QUICK GUIDE
+================================================================================
+
+STEP-BY-STEP VISUAL GUIDE
+================================================================================
+
+STEP 1: DOWNLOAD ZIP FILE
+┌─────────────────────────────────────────────────────────────┐
+│ v0 Interface (top right)                                    │
+│                                                              │
+│  ⋮ (three dots)  ← Click here                              │
+│  │                                                           │
+│  ├─ Edit                                                     │
+│  ├─ Design Mode                                              │
+│  ├─ Download ZIP ← Select this                              │
+│  └─ Publish                                                  │
+│                                                              │
+│ File downloads to your Downloads folder                      │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 2: EXTRACT ZIP FILE
+┌─────────────────────────────────────────────────────────────┐
+│ Windows:                                                     │
+│  skillauro.zip → Right-click → Extract All → Choose folder  │
+│                                                              │
+│ Mac:                                                         │
+│  skillauro.zip → Double-click → Auto extracts               │
+│                                                              │
+│ Linux:                                                       │
+│  unzip skillauro.zip                                        │
+│                                                              │
+│ Result:                                                      │
+│ skillauro-educational-platform/                             │
+│ ├── app/                                                     │
+│ ├── components/                                              │
+│ ├── lib/                                                     │
+│ ├── scripts/                                                │
+│ ├── package.json                                            │
+│ ├── .env.example                                            │
+│ ├── START_HERE_FIRST.md  ← Read this first!                │
+│ └── ... (other files)                                       │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 3: OPEN IN CODE EDITOR
+┌─────────────────────────────────────────────────────────────┐
+│ Visual Studio Code:                                          │
+│                                                              │
+│ 1. Open VS Code                                             │
+│ 2. File → Open Folder                                       │
+│ 3. Select extracted skillauro-educational-platform folder   │
+│ 4. Click "Open"                                             │
+│                                                              │
+│ Or via command line:                                        │
+│ cd skillauro-educational-platform                           │
+│ code .                                                       │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 4: INSTALL DEPENDENCIES
+┌─────────────────────────────────────────────────────────────┐
+│ Open Terminal (Ctrl+` in VS Code)                           │
+│                                                              │
+│ $ npm install                                               │
+│                                                              │
+│ ↓ Wait 2-5 minutes ↓                                        │
+│                                                              │
+│ ✓ added 387 packages                                        │
+│ ✓ Installation complete                                     │
+│                                                              │
+│ You now have node_modules/ folder                           │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 5: CONFIGURE DATABASE
+┌─────────────────────────────────────────────────────────────┐
+│ A. Copy .env.example to .env.local                          │
+│                                                              │
+│    .env.example → Right-click → Copy                        │
+│                 → Right-click → Paste                       │
+│                 → Rename to .env.local                      │
+│                                                              │
+│ B. Edit .env.local (open in VS Code)                        │
+│                                                              │
+│    DB_HOST=localhost                                        │
+│    DB_PORT=3306                                             │
+│    DB_USER=root              ← Your MySQL username          │
+│    DB_PASSWORD=your_password ← Your MySQL password          │
+│    DB_NAME=skillauro                                        │
+│                                                              │
+│    EMAIL_USER=your_email@gmail.com                          │
+│    EMAIL_PASSWORD=your_app_password                         │
+│                                                              │
+│    RAZORPAY_KEY_ID=your_key_id                              │
+│    RAZORPAY_KEY_SECRET=your_key_secret                      │
+│                                                              │
+│    (Other fields can stay as-is for development)            │
+│                                                              │
+│ C. Save .env.local (Ctrl+S)                                 │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 6: CREATE MYSQL DATABASE
+┌─────────────────────────────────────────────────────────────┐
+│ Open MySQL Command Line or Workbench                        │
+│                                                              │
+│ $ mysql -u root -p                                          │
+│ Enter password: ___________                                 │
+│                                                              │
+│ > CREATE DATABASE skillauro                                │
+│   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;         │
+│                                                              │
+│ > SHOW DATABASES;                                           │
+│   ✓ skillauro appears in list                              │
+│                                                              │
+│ > EXIT;                                                     │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 7: RUN DATABASE MIGRATIONS
+┌─────────────────────────────────────────────────────────────┐
+│ In terminal (in project folder):                            │
+│                                                              │
+│ $ mysql -h localhost -u root -p skillauro < \              │
+│   scripts/01_create_tables.sql                              │
+│                                                              │
+│ $ mysql -h localhost -u root -p skillauro < \              │
+│   scripts/02_insert_sample_data.sql                         │
+│                                                              │
+│ $ mysql -h localhost -u root -p skillauro < \              │
+│   scripts/add-missing-tables.sql                            │
+│                                                              │
+│ Verify:                                                      │
+│ $ mysql -u root -p skillauro                                │
+│ > SHOW TABLES;                                              │
+│   ✓ You should see 15+ tables                               │
+│ > EXIT;                                                     │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 8: START DEVELOPMENT SERVER
+┌─────────────────────────────────────────────────────────────┐
+│ In terminal (project folder):                               │
+│                                                              │
+│ $ npm run dev                                               │
+│                                                              │
+│ ↓ Wait for compilation ↓                                    │
+│                                                              │
+│ ✓ ▲ Next.js 15.x.x                                         │
+│ ✓ - Local: http://localhost:3000                            │
+│ ✓ - Environments: .env.local                                │
+│                                                              │
+│ Server is running!                                          │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 9: ACCESS APPLICATION
+┌─────────────────────────────────────────────────────────────┐
+│ Open web browser:                                           │
+│                                                              │
+│ http://localhost:3000                                       │
+│                                                              │
+│ You should see:                                             │
+│ ✓ Skillauro logo                                            │
+│ ✓ Hero image                                                │
+│ ✓ "Login" button                                            │
+│ ✓ Navigation menu                                           │
+│                                                              │
+│ Everything is working!                                      │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================================
+PORTAL FLOW DIAGRAM
+================================================================================
+
+                            Skillauro
+                         (Home Page)
+                              │
+                ┌─────────────┼─────────────┐
+                │             │             │
+            Contact         Login         Sign Up
+              Page            │          (Not needed)
+                ├─────────────┤
+                │             │
+              Admin       Faculty      Student
+            Dashboard     Dashboard   Dashboard
+                │             │            │
+           ┌────┴────┐   ┌─────┴─────┐   │
+           │         │   │           │   │
+        Manage    Manage Manage    Manage My
+       Faculties Students Courses Courses
+           │         │
+       Register   Register
+       Faculty   Student
+           │         │
+        (Auto-Generated User ID & Password)
+           │         │
+        Email with Credentials
+
+
+================================================================================
+USER ID GENERATION EXAMPLES
+================================================================================
+
+Admin User ID:
+┌──────┐
+│ ADM  │ + │ 0001 │ = │ ADM0001 │
+└──────┘   └──────┘   └─────────┘
+
+Faculty User ID:
+┌──────┐
+│ FAC  │ + │ 00001 │ = │ FAC00001 │
+└──────┘   └───────┘   └──────────┘
+
+Student User ID:
+┌──────┐
+│ STU  │ + │ 000001 │ = │ STU000001 │
+└──────┘   └────────┘   └───────────┘
+
+================================================================================
+LOGIN CREDENTIALS EXAMPLE
+================================================================================
+
+After creating an admin account:
+
+Email/User ID: admin@skillauro.in (or ADM0001)
+Password:      Admin@123456
+Role:          Admin
+
+After registering faculty through admin panel:
+
+Email/User ID: dr.raj@email.com (or FAC00001)
+Password:      Auto-generated (check email)
+Role:          Faculty
+
+After registering student through admin panel:
+
+Email/User ID: john.doe@email.com (or STU000001)
+Password:      Auto-generated (check email)
+Role:          Student
+
+================================================================================
+PROJECT STRUCTURE OVERVIEW
+================================================================================
+
+skillauro-educational-platform/
+│
+├── 📄 DOCUMENTATION (Read these!)
+│   ├── START_HERE_FIRST.md         ← START HERE!
+│   ├── DOWNLOAD_AND_SETUP.md
+│   ├── SETUP_CHECKLIST.md
+│   ├── INSTALL_AND_RUN.md
+│   ├── README.md
+│   └── ... (10+ docs)
+│
+├── 🔧 CONFIGURATION
+│   ├── .env.example                ← COPY TO .env.local
+│   ├── package.json
+│   ├── next.config.mjs
+│   └── tsconfig.json
+│
+├── 📱 APPLICATION CODE
+│   ├── app/
+│   │   ├── admin/        (Admin portal)
+│   │   ├── faculty/      (Faculty portal)
+│   │   ├── student/      (Student portal)
+│   │   ├── api/          (API endpoints)
+│   │   ├── login/        (Login page)
+│   │   └── page.tsx      (Home page)
+│   │
+│   ├── components/
+│   │   ├── admin/
+│   │   ├── faculty/
+│   │   ├── student/
+│   │   └── ui/           (UI components)
+│   │
+│   ├── lib/
+│   │   ├── auth-context.tsx
+│   │   ├── db.ts
+│   │   └── utils.ts
+│   │
+│   ├── public/           (Images)
+│   │   └── hero-learning.jpg
+│   │
+│   └── scripts/          (Database)
+│       ├── 01_create_tables.sql
+│       ├── 02_insert_sample_data.sql
+│       └── add-missing-tables.sql
+│
+└── 📦 node_modules/     (Created by npm install)
+
+================================================================================
+TROUBLESHOOTING FLOW
+================================================================================
+
+Problem: "next: command not found"
+└─→ Solution: npm install
+
+Problem: Database connection failed
+└─→ Solution: Check .env.local credentials, verify MySQL running
+
+Problem: Port 3000 already in use
+└─→ Solution: npm run dev -- -p 3001
+
+Problem: Can't login
+└─→ Solution: Create admin account in MySQL first
+
+Problem: Email not sending
+└─→ Solution: Verify EMAIL_USER and EMAIL_PASSWORD in .env.local
+
+Problem: Tables not found
+└─→ Solution: Re-run migrations (01, 02, add-missing)
+
+================================================================================
+QUICK COMMAND REFERENCE
+================================================================================
+
+Install:           npm install
+Start dev:         npm run dev
+Build:             npm run build
+Lint:              npm run lint
+MySQL:             mysql -u root -p
+View database:     mysql -u root -p skillauro
+
+================================================================================
+CHECKLIST FOR SUCCESS
+================================================================================
+
+Before Starting:
+□ Node.js installed (check: node -v)
+□ MySQL installed (check: mysql -v)
+□ npm installed (check: npm -v)
+□ VS Code or editor ready
+□ 500MB free disk space
+
+During Setup:
+□ Downloaded ZIP file
+□ Extracted files
+□ Read START_HERE_FIRST.md
+□ Ran npm install
+□ Created .env.local
+□ Filled in credentials
+□ Created MySQL database
+□ Ran migrations
+
+After Setup:
+□ npm run dev works
+□ Browser shows localhost:3000
+□ Home page displays
+□ Created admin account
+□ Can login as admin
+□ Can access admin dashboard
+
+Ready to Use:
+□ Register first faculty
+□ Register first student
+□ Test faculty login
+□ Test student login
+□ Test contact form
+□ Ready for deployment!
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Download → Extract → Setup (30-60 min)
+2. Read documentation (15-30 min)
+3. Create user accounts (5 min)
+4. Test all portals (15 min)
+5. Add sample data (10 min)
+6. Configure email & payments (10 min)
+7. Deploy (when ready)
+
+================================================================================
+You're all set! Download and follow the steps above. Good luck! 🚀
+================================================================================

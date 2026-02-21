@@ -3,7 +3,8 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { FacultyForm } from '@/components/admin/faculty-form';
 
 interface Faculty {
   id: string;
@@ -15,48 +16,55 @@ interface Faculty {
   courses: number;
 }
 
-const initialFaculties: Faculty[] = [
-  {
-    id: '1',
-    name: 'Dr. Raj Kumar',
-    email: 'raj.kumar@skillauro.com',
-    department: 'Computer Science',
-    specialization: 'Web Development',
-    phone: '9876543210',
-    courses: 3,
-  },
-  {
-    id: '2',
-    name: 'Ms. Priya Verma',
-    email: 'priya.verma@skillauro.com',
-    department: 'Computer Science',
-    specialization: 'React & JavaScript',
-    phone: '9876543211',
-    courses: 2,
-  },
-  {
-    id: '3',
-    name: 'Prof. Arun Singh',
-    email: 'arun.singh@skillauro.com',
-    department: 'Computer Science',
-    specialization: 'Backend Development',
-    phone: '9876543212',
-    courses: 4,
-  },
-  {
-    id: '4',
-    name: 'Dr. Meera Gupta',
-    email: 'meera.gupta@skillauro.com',
-    department: 'Data Science',
-    specialization: 'Python & AI/ML',
-    phone: '9876543213',
-    courses: 2,
-  },
-];
+const initialFaculties: Faculty[] = [];
 
 export default function FacultiesPage() {
   const [faculties, setFaculties] = useState(initialFaculties);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFaculties = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/faculty/list');
+        if (response.ok) {
+          const data = await response.json();
+          setFaculties(data.faculties || []);
+        }
+      } catch (err) {
+        console.error('Error fetching faculties:', err);
+        setError('Failed to load faculties');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFaculties();
+  }, []);
+
+  const handleFormClose = () => {
+    setShowForm(false);
+  };
+
+  const handleFormSubmit = () => {
+    setShowForm(false);
+    // Refresh the faculty list
+    const fetchFaculties = async () => {
+      try {
+        const response = await fetch('/api/admin/faculty/list');
+        if (response.ok) {
+          const data = await response.json();
+          setFaculties(data.faculties || []);
+        }
+      } catch (err) {
+        console.error('Error fetching faculties:', err);
+      }
+    };
+    fetchFaculties();
+  };
 
   const filteredFaculties = faculties.filter(
     (f) =>
@@ -74,7 +82,10 @@ export default function FacultiesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Faculties</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+        <Button
+          onClick={() => setShowForm(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Faculty
         </Button>
@@ -138,10 +149,30 @@ export default function FacultiesPage() {
         </div>
       </Card>
 
-      {filteredFaculties.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-gray-600">No faculties found matching your search.</p>
+      {error && (
+        <Card className="p-4 bg-red-50 border border-red-200">
+          <p className="text-red-700">{error}</p>
         </Card>
+      )}
+
+      {isLoading ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">Loading faculties...</p>
+        </Card>
+      ) : filteredFaculties.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">
+            {searchTerm ? 'No faculties found matching your search.' : 'No faculties added yet. Click "Add Faculty" to get started.'}
+          </p>
+        </Card>
+      ) : null}
+
+      {showForm && (
+        <FacultyForm
+          onClose={handleFormClose}
+          onSubmit={handleFormSubmit}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );

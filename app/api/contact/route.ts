@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { insert } from '@/lib/db-config';
+import mysql from 'mysql2/promise';
 import nodemailer from 'nodemailer';
 
 // Configure email (using environment variables)
 const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || 'gmail',
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'your-email@gmail.com',
-    pass: process.env.EMAIL_PASSWORD || 'your-app-password',
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
@@ -26,14 +26,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Save to database
-    const result = await insert('contact_messages', {
-      name,
-      email,
-      phone: phone || null,
-      subject,
-      message,
-      status: 'new',
+    const connection = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
     });
+
+    const [result] = await connection.execute(
+      `INSERT INTO contact_messages (name, email, phone, subject, message, status) 
+       VALUES (?, ?, ?, ?, ?, 'new')`,
+      [name, email, phone || null, subject, message]
+    ) as any;
+
+    await connection.end();
 
     // Send email to Skillauro
     try {
@@ -61,7 +67,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: 'Message sent successfully. We will contact you soon.',
-        messageId: (result as any).insertId,
+        messageId: (result).insertId,
       },
       { status: 201 }
     );

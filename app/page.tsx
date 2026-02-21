@@ -142,13 +142,13 @@ export default function HomePage() {
             </div>
 
             {/* Right Image */}
-            <div className="relative h-96 lg:h-full">
+            <div className="relative h-96 lg:h-full rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/skillauro-logo.png"
-                alt="Skillauro Learning"
-                width={400}
-                height={400}
-                className="w-full h-full object-contain"
+                src="/hero-learning.jpg"
+                alt="Student learning online with inspiration"
+                width={600}
+                height={600}
+                className="w-full h-full object-cover"
               />
             </div>
           </div>

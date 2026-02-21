@@ -3,7 +3,8 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Edit, Trash2, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { CourseForm } from '@/components/admin/course-form';
 
 interface Course {
   id: string;
@@ -15,57 +16,51 @@ interface Course {
   status: 'Active' | 'Inactive' | 'Upcoming';
 }
 
-const initialCourses: Course[] = [
-  {
-    id: '1',
-    name: 'Web Development Mastery',
-    instructor: 'Dr. Raj Kumar',
-    students: 342,
-    duration: '12 weeks',
-    level: 'Beginner to Advanced',
-    status: 'Active',
-  },
-  {
-    id: '2',
-    name: 'React Advanced',
-    instructor: 'Ms. Priya Verma',
-    students: 256,
-    duration: '10 weeks',
-    level: 'Intermediate to Advanced',
-    status: 'Active',
-  },
-  {
-    id: '3',
-    name: 'Node.js Backend',
-    instructor: 'Prof. Arun Singh',
-    students: 198,
-    duration: '10 weeks',
-    level: 'Intermediate to Advanced',
-    status: 'Active',
-  },
-  {
-    id: '4',
-    name: 'Python Data Science',
-    instructor: 'Dr. Meera Gupta',
-    students: 287,
-    duration: '14 weeks',
-    level: 'Beginner to Intermediate',
-    status: 'Active',
-  },
-  {
-    id: '5',
-    name: 'Cloud Computing',
-    instructor: 'TBD',
-    students: 0,
-    duration: '12 weeks',
-    level: 'Intermediate',
-    status: 'Upcoming',
-  },
-];
+const initialCourses: Course[] = [];
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState(initialCourses);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/courses/list');
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data.courses || []);
+        }
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        setError('Failed to load courses');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this course?')) return;
+
+    try {
+      const response = await fetch(`/api/admin/courses/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setCourses(courses.filter((c) => c.id !== id));
+      }
+    } catch (err) {
+      console.error('Error deleting course:', err);
+      setError('Failed to delete course');
+    }
+  };
 
   const filteredCourses = courses.filter(
     (c) =>
@@ -83,7 +78,10 @@ export default function CoursesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Courses</h1>
-        <Button className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2">
+        <Button 
+          onClick={() => setShowForm(true)}
+          className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Course
         </Button>
@@ -159,10 +157,44 @@ export default function CoursesPage() {
         ))}
       </div>
 
-      {filteredCourses.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-gray-600">No courses found matching your search.</p>
+      {error && (
+        <Card className="p-4 bg-red-50 border border-red-200">
+          <p className="text-red-700">{error}</p>
         </Card>
+      )}
+
+      {isLoading ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">Loading courses...</p>
+        </Card>
+      ) : filteredCourses.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-gray-600">
+            {searchTerm ? 'No courses found matching your search.' : 'No courses added yet. Click "Add Course" to get started.'}
+          </p>
+        </Card>
+      ) : null}
+
+      {showForm && (
+        <CourseForm
+          onClose={() => setShowForm(false)}
+          onSubmit={() => {
+            setShowForm(false);
+            const fetchCourses = async () => {
+              try {
+                const response = await fetch('/api/admin/courses/list');
+                if (response.ok) {
+                  const data = await response.json();
+                  setCourses(data.courses || []);
+                }
+              } catch (err) {
+                console.error('Error fetching courses:', err);
+              }
+            };
+            fetchCourses();
+          }}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );
