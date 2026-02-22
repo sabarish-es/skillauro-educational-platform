@@ -148,6 +148,7 @@ export default function HomePage() {
                 alt="Student learning online with inspiration"
                 width={600}
                 height={600}
+                loading="eager"
                 className="w-full h-full object-cover"
               />
             </div>
