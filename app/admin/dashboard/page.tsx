@@ -4,48 +4,81 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, BookOpen, DollarSign, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-const stats = [
-  {
-    icon: Users,
-    label: 'Total Faculties',
-    value: '0',
-    color: 'bg-blue-100',
-    textColor: 'text-blue-600',
-  },
-  {
-    icon: Users,
-    label: 'Total Students',
-    value: '0',
-    color: 'bg-green-100',
-    textColor: 'text-green-600',
-  },
-  {
-    icon: BookOpen,
-    label: 'Active Courses',
-    value: '0',
-    color: 'bg-purple-100',
-    textColor: 'text-purple-600',
-  },
-  {
-    icon: DollarSign,
-    label: 'Total Fees Collected',
-    value: '₹0',
-    color: 'bg-orange-100',
-    textColor: 'text-orange-600',
-  },
-];
-
-const recentActivities: any[] = [];
+interface DashboardStats {
+  totalFaculties: number;
+  totalStudents: number;
+  activeCourses: number;
+  totalFeesCollected: number;
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalFaculties: 0,
+    totalStudents: 0,
+    activeCourses: 0,
+    totalFeesCollected: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/admin/dashboard/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('[v0] Failed to fetch dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const displayStats = [
+    {
+      icon: Users,
+      label: 'Total Faculties',
+      value: stats.totalFaculties.toString(),
+      color: 'bg-blue-100',
+      textColor: 'text-blue-600',
+    },
+    {
+      icon: Users,
+      label: 'Total Students',
+      value: stats.totalStudents.toString(),
+      color: 'bg-green-100',
+      textColor: 'text-green-600',
+    },
+    {
+      icon: BookOpen,
+      label: 'Active Courses',
+      value: stats.activeCourses.toString(),
+      color: 'bg-purple-100',
+      textColor: 'text-purple-600',
+    },
+    {
+      icon: DollarSign,
+      label: 'Total Fees Collected',
+      value: `₹${stats.totalFeesCollected.toLocaleString()}`,
+      color: 'bg-orange-100',
+      textColor: 'text-orange-600',
+    },
+  ];
+
+  const recentActivities: any[] = [];
 
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
+        {displayStats.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label} className="p-6 hover:shadow-lg transition-shadow">

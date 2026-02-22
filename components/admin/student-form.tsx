@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
+import { PasswordToggle } from '@/components/auth/password-toggle';
 
 interface StudentFormProps {
   onClose: () => void;
@@ -22,7 +23,10 @@ export interface StudentData {
   confirmPassword: string;
 }
 
+type FormStep = 'basic' | 'verification' | 'password';
+
 export function StudentForm({ onClose, onSubmit, isLoading = false }: StudentFormProps) {
+  const [step, setStep] = useState<FormStep>('basic');
   const [formData, setFormData] = useState<StudentData>({
     name: '',
     email: '',
@@ -33,7 +37,10 @@ export function StudentForm({ onClose, onSubmit, isLoading = false }: StudentFor
     password: '',
     confirmPassword: '',
   });
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -49,7 +56,7 @@ export function StudentForm({ onClose, onSubmit, isLoading = false }: StudentFor
     }
   };
 
-  const validateForm = () => {
+  const validateBasicInfo = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = 'Name is required';
@@ -60,6 +67,14 @@ export function StudentForm({ onClose, onSubmit, isLoading = false }: StudentFor
     if (!formData.enrollmentNumber.trim()) newErrors.enrollmentNumber = 'Enrollment number is required';
     if (!formData.batch.trim()) newErrors.batch = 'Batch is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePassword = () => {
+    const newErrors: Record<string, string> = {};
+
     if (!formData.password.trim()) newErrors.password = 'Password is required';
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     if (!formData.confirmPassword.trim()) newErrors.confirmPassword = 'Confirm password is required';
@@ -69,33 +84,90 @@ export function StudentForm({ onClose, onSubmit, isLoading = false }: StudentFor
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      try {
-        const response = await fetch('/api/admin/student/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
+  const sendOtp = async () => {
+    if (!validateBasicInfo()) return;
 
-        if (response.ok) {
-          onSubmit(formData);
-          setFormData({
-            name: '',
-            email: '',
-            enrollmentNumber: '',
-            batch: '',
-            phone: '',
-            address: '',
-          });
-        } else {
-          const error = await response.json();
-          setErrors({ submit: error.message || 'Failed to add student' });
-        }
-      } catch (error) {
-        setErrors({ submit: 'Network error. Please try again.' });
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/send-verification-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      if (response.ok) {
+        setOtpSent(true);
+        setStep('verification');
+      } else {
+        const error = await response.json();
+        setErrors({ submit: error.error || 'Failed to send OTP' });
       }
+    } catch (error) {
+      setErrors({ submit: 'Network error. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    if (!otp) {
+      setErrors({ otp: 'OTP is required' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/verify-email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, otp }),
+      });
+
+      if (response.ok) {
+        setStep('password');
+        setErrors({});
+      } else {
+        const error = await response.json();
+        setErrors({ otp: error.error || 'Invalid or expired OTP' });
+      }
+    } catch (error) {
+      setErrors({ otp: 'Network error. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitForm = async () => {
+    if (!validatePassword()) return;
+
+    try {
+      const response = await fetch('/api/admin/student/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        onSubmit(formData);
+        setFormData({
+          name: '',
+          email: '',
+          enrollmentNumber: '',
+          batch: '',
+          phone: '',
+          address: '',
+          password: '',
+          confirmPassword: '',
+        });
+        setOtp('');
+        setOtpSent(false);
+        setStep('basic');
+      } else {
+        const error = await response.json();
+        setErrors({ submit: error.message || 'Failed to add student' });
+      }
+    } catch (error) {
+      setErrors({ submit: 'Network error. Please try again.' });
     }
   };
 
@@ -108,273 +180,237 @@ export function StudentForm({ onClose, onSubmit, isLoading = false }: StudentFor
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
-              disabled={isLoading}
+              disabled={loading}
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {errors.submit && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                {errors.submit}
-              </div>
-            )}
+          {/* Progress Steps */}
+          <div className="mb-6 flex gap-2">
+            <div className={`flex-1 h-2 rounded-full ${step === 'basic' || step === 'verification' || step === 'password' ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`flex-1 h-2 rounded-full ${step === 'verification' || step === 'password' ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`flex-1 h-2 rounded-full ${step === 'password' ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {errors.submit && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {errors.submit}
+            </div>
+          )}
+
+          {/* Step 1: Basic Information */}
+          {step === 'basic' && (
+            <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="John Doe"
+                    disabled={loading}
+                  />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="student@skillauro.com"
+                    disabled={loading}
+                  />
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Enrollment Number *</label>
+                  <input
+                    type="text"
+                    name="enrollmentNumber"
+                    value={formData.enrollmentNumber}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.enrollmentNumber ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="STU001"
+                    disabled={loading}
+                  />
+                  {errors.enrollmentNumber && <p className="text-red-500 text-xs mt-1">{errors.enrollmentNumber}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Batch *</label>
+                  <input
+                    type="text"
+                    name="batch"
+                    value={formData.batch}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.batch ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="2024-2026"
+                    disabled={loading}
+                  />
+                  {errors.batch && <p className="text-red-500 text-xs mt-1">{errors.batch}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="9876543210"
+                    disabled={loading}
+                  />
+                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="Enter address"
+                    rows={2}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Sending OTP...' : 'Send OTP to Email'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Step 2: Email Verification */}
+          {step === 'verification' && (
+            <form onSubmit={(e) => { e.preventDefault(); verifyOtp(); }} className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-700">
+                  We sent a verification code to <strong>{formData.email}</strong>
+                </p>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">OTP Code *</label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="John Doe"
-                  disabled={isLoading}
+                  value={otp}
+                  onChange={(e) => {
+                    setOtp(e.target.value);
+                    if (errors.otp) setErrors((prev) => ({ ...prev, otp: '' }));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm tracking-widest text-center text-lg font-mono ${errors.otp ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="000000"
+                  maxLength={6}
+                  disabled={loading}
                 />
-                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                {errors.otp && <p className="text-red-500 text-xs mt-1">{errors.otp}</p>}
+                <p className="text-xs text-gray-500 mt-1">Enter the 6-digit code sent to your email</p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep('basic')}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  disabled={loading}
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={verifyOtp}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Verifying...' : 'Verify OTP'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Step 3: Set Password */}
+          {step === 'password' && (
+            <form onSubmit={(e) => { e.preventDefault(); submitForm(); }} className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-700">Email verified! Now set your password.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="student@skillauro.com"
-                  disabled={isLoading}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                <PasswordToggle
+                  value={formData.password}
+                  onChange={(e) => {
+                    setFormData((prev) => ({ ...prev, password: e.target.value }));
+                    if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
+                  }}
+                  placeholder="Minimum 8 characters"
+                  className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                  disabled={loading}
                 />
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Enrollment Number *
-                </label>
-                <input
-                  type="text"
-                  name="enrollmentNumber"
-                  value={formData.enrollmentNumber}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
-                    errors.enrollmentNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="STU001"
-                  disabled={isLoading}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
+                <PasswordToggle
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }));
+                    if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                  }}
+                  placeholder="Re-enter password"
+                  className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`}
+                  disabled={loading}
                 />
-                {errors.enrollmentNumber && (
-                  <p className="text-red-500 text-xs mt-1">{errors.enrollmentNumber}</p>
-                )}
+                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Batch *
-                </label>
-                <input
-                  type="text"
-                  name="batch"
-                  value={formData.batch}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
-                    errors.batch ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="2024-2026"
-                  disabled={isLoading}
-                />
-                {errors.batch && <p className="text-red-500 text-xs mt-1">{errors.batch}</p>}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep('verification')}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  disabled={loading}
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Adding...' : 'Add Student'}
+                </button>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone *
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
-                    errors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="9876543210"
-                  disabled={isLoading}
-                />
-                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address
-                </label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                  placeholder="Enter address"
-                  rows={2}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="student@skillauro.com"
-                disabled={isLoading}
-              />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enrollment Number *
-              </label>
-              <input
-                type="text"
-                name="enrollmentNumber"
-                value={formData.enrollmentNumber}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.enrollmentNumber ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="STU001"
-                disabled={isLoading}
-              />
-              {errors.enrollmentNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.enrollmentNumber}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Batch *
-              </label>
-              <input
-                type="text"
-                name="batch"
-                value={formData.batch}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.batch ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="2024-2026"
-                disabled={isLoading}
-              />
-              {errors.batch && <p className="text-red-500 text-xs mt-1">{errors.batch}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone *
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.phone ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="9876543210"
-                disabled={isLoading}
-              />
-              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address
-              </label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                placeholder="Enter address"
-                rows={2}
-                disabled={isLoading}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password *
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                  errors.password ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Minimum 8 characters"
-                disabled={isLoading}
-              />
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm Password *
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Re-enter password"
-                disabled={isLoading}
-              />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Adding...' : 'Add Student'}
-              </button>
-            </div>
-          </form>
+            </form>
+          )}
         </div>
       </Card>
     </div>

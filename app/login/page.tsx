@@ -142,28 +142,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Info Section */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-600 font-semibold mb-4">How to Login:</p>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">1.</span>
-                <span>Use your email address or user ID provided by admin</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">2.</span>
-                <span>Enter your password sent to your email</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">3.</span>
-                <span>Select your role (Admin, Faculty, or Student)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">4.</span>
-                <span>Click Login to access your dashboard</span>
-              </li>
-            </ul>
-          </div>
+
         </Card>
 
         {/* Footer */}

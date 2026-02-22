@@ -1,23 +1,31 @@
 import { cookies } from 'next/headers';
-import { getOne } from './db-config';
+import { getOne, executeQuery } from './db-config';
 import bcrypt from 'bcryptjs';
 
 const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Authenticate user from database
 export async function authenticate(
-  email: string,
+  identifier: string, // Can be email, user_id, or enrollment_number
   password: string,
   role: string
 ) {
   try {
-    const user = await getOne(
-      'SELECT id, email, password, name, role, phone FROM users WHERE email = ? AND role = ?',
-      [email, role]
+    let user = null;
+
+    // First, try to find user by email or user_id
+    user = await getOne(
+      'SELECT id, email, user_id, password, name, role, phone, status FROM users WHERE (email = ? OR user_id = ?) AND role = ?',
+      [identifier, identifier, role]
     ) as any;
 
     if (!user) {
       throw new Error('Invalid credentials');
+    }
+
+    // Check if user is active
+    if (user.status !== 'active') {
+      throw new Error('Account is inactive');
     }
 
     // For demo purposes, compare plain text passwords
@@ -29,10 +37,12 @@ export async function authenticate(
     return {
       id: user.id,
       email: user.email,
+      user_id: user.user_id,
       name: user.name,
       role: user.role,
     };
   } catch (error) {
+    console.error('[v0] Authentication error:', error);
     throw new Error('Invalid credentials or database error');
   }
 }
