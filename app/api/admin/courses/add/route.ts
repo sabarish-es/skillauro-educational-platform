@@ -51,10 +51,17 @@ export async function POST(request: NextRequest) {
       database: process.env.DB_NAME,
     });
 
+    // Get the faculty_id if facultyId is provided
+    let facultyId = 1; // Default faculty ID
+    const facultyIdFromForm = formData.get('facultyId');
+    if (facultyIdFromForm) {
+      facultyId = parseInt(facultyIdFromForm as string);
+    }
+
     const [result] = await connection.execute(
-      `INSERT INTO courses (code, name, description, duration_weeks, credits, max_students, course_level, status, image_url, instructor_name)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [code, name, description || '', parseInt(duration) || 12, credits, maxStudents, level || 'Beginner', status || 'active', imageUrl, instructor]
+      `INSERT INTO courses (code, name, description, duration_weeks, credits, max_students, faculty_id, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [code, name, description || '', parseInt(duration) || 12, credits, maxStudents, facultyId, status || 'active']
     ) as any;
 
     await connection.end();

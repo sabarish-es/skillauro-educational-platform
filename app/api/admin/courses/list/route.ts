@@ -10,12 +10,15 @@ export async function GET(request: NextRequest) {
       database: process.env.DB_NAME,
     });
 
+    // Join with faculties and users to get instructor information
     const [rows] = await connection.execute(
-      `SELECT id, code, name, description, duration_weeks as duration, credits, max_students as maxStudents, 
-              course_level as level, status, image_url as imageUrl, instructor_name as instructor, created_at 
-       FROM courses 
-       WHERE status != 'draft'
-       ORDER BY created_at DESC`
+      `SELECT c.id, c.code, c.name, c.description, c.duration_weeks as duration, c.credits, c.max_students as maxStudents, 
+              c.status, c.faculty_id, c.created_at, u.name as instructor
+       FROM courses c
+       LEFT JOIN faculties f ON c.faculty_id = f.id
+       LEFT JOIN users u ON f.user_id = u.id
+       WHERE c.status != 'draft'
+       ORDER BY c.created_at DESC`
     ) as any;
 
     await connection.end();
@@ -28,11 +31,11 @@ export async function GET(request: NextRequest) {
       duration: course.duration || 12,
       credits: course.credits,
       maxStudents: course.maxStudents,
-      level: course.level,
+      level: 'Intermediate',
       status: course.status,
       instructor: course.instructor || 'TBD',
-      imageUrl: course.imageUrl || '/course-default.jpg',
-      students: 0, // Will be calculated from enrollments
+      imageUrl: '/course-default.jpg',
+      students: 0,
     }));
 
     return NextResponse.json({ courses }, { status: 200 });

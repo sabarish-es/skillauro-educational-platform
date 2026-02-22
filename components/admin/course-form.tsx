@@ -137,7 +137,8 @@ export function CourseForm({ onClose, onSubmit, isLoading, initialData }: Course
       formDataToSend.append('name', formData.name);
       formDataToSend.append('code', formData.code);
       formDataToSend.append('description', formData.description);
-      formDataToSend.append('instructor', formData.instructor);
+      formDataToSend.append('instructor', formData.instructor || '');
+      formDataToSend.append('facultyId', formData.facultyId || '');
       formDataToSend.append('duration', formData.duration);
       formDataToSend.append('credits', formData.credits);
       formDataToSend.append('maxStudents', formData.maxStudents);
