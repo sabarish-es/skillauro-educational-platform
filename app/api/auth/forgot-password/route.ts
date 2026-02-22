@@ -51,28 +51,34 @@ export async function POST(request: NextRequest) {
     await connection.end();
 
     // Send OTP email
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Password Reset OTP - Skillauro',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Password Reset Request</h2>
-            <p>Hi ${users[0].name},</p>
-            <p>You requested to reset your password. Use the OTP below:</p>
-            <div style="background: #f0f0f0; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-              <h1 style="letter-spacing: 5px; color: #2563eb; margin: 0;">${otp}</h1>
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.warn('[v0] Email credentials not configured');
+    } else {
+      try {
+        await transporter.sendMail({
+          from: `Skillauro <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'Password Reset OTP - Skillauro',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Password Reset Request</h2>
+              <p>Hi ${users[0].name},</p>
+              <p>You requested to reset your password. Use the OTP below:</p>
+              <div style="background: #f0f0f0; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                <h1 style="letter-spacing: 5px; color: #2563eb; margin: 0;">${otp}</h1>
+              </div>
+              <p style="color: #666;">This OTP is valid for 10 minutes.</p>
+              <p style="color: #666;">If you didn't request this, ignore this email.</p>
+              <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+              <p style="font-size: 12px; color: #999;">© 2024 Skillauro. All rights reserved.</p>
             </div>
-            <p style="color: #666;">This OTP is valid for 10 minutes.</p>
-            <p style="color: #666;">If you didn't request this, ignore this email.</p>
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            <p style="font-size: 12px; color: #999;">© 2024 Skillauro. All rights reserved.</p>
-          </div>
-        `,
-      });
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
+          `,
+        });
+        console.log('[v0] Password reset OTP sent to:', email);
+      } catch (emailError: any) {
+        console.error('[v0] Email sending failed:', emailError.message || emailError);
+        console.log('[v0] OTP saved to database:', otp, 'for email:', email);
+      }
     }
 
     return NextResponse.json(

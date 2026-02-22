@@ -1,8 +1,8 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { Search, Download, Eye } from 'lucide-react';
-import { useState } from 'react';
+import { Search, Download, Eye, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface FeeRecord {
   id: string;
@@ -15,62 +15,98 @@ interface FeeRecord {
   lastPaymentDate: string;
 }
 
-const initialFees: FeeRecord[] = [
-  {
-    id: '1',
-    studentName: 'Arjun Singh',
-    enrollmentNumber: 'STU001',
-    totalFees: 150000,
-    amountPaid: 150000,
-    amountDue: 0,
-    status: 'Paid',
-    lastPaymentDate: '2024-01-15',
-  },
-  {
-    id: '2',
-    studentName: 'Anjali Sharma',
-    enrollmentNumber: 'STU002',
-    totalFees: 150000,
-    amountPaid: 150000,
-    amountDue: 0,
-    status: 'Paid',
-    lastPaymentDate: '2024-01-18',
-  },
-  {
-    id: '3',
-    studentName: 'Rahul Patel',
-    enrollmentNumber: 'STU003',
-    totalFees: 150000,
-    amountPaid: 75000,
-    amountDue: 75000,
-    status: 'Partially Paid',
-    lastPaymentDate: '2023-12-20',
-  },
-  {
-    id: '4',
-    studentName: 'Neha Verma',
-    enrollmentNumber: 'STU004',
-    totalFees: 150000,
-    amountPaid: 150000,
-    amountDue: 0,
-    status: 'Paid',
-    lastPaymentDate: '2024-01-10',
-  },
-  {
-    id: '5',
-    studentName: 'Priya Singh',
-    enrollmentNumber: 'STU005',
-    totalFees: 150000,
-    amountPaid: 0,
-    amountDue: 150000,
-    status: 'Unpaid',
-    lastPaymentDate: 'N/A',
-  },
-];
+interface PaymentForm {
+  studentId: string;
+  amount: string;
+  paymentMethod: string;
+  remarks: string;
+}
 
 export default function FeesPage() {
-  const [fees, setFees] = useState(initialFees);
+  const [fees, setFees] = useState<FeeRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [paymentForm, setPaymentForm] = useState<PaymentForm>({
+    studentId: '',
+    amount: '',
+    paymentMethod: 'manual',
+    remarks: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch fees data
+  useEffect(() => {
+    const fetchFees = async () => {
+      try {
+        const response = await fetch('/api/admin/fees/list');
+        if (response.ok) {
+          const data = await response.json();
+          setFees(data.fees || []);
+        }
+      } catch (error) {
+        console.error('[v0] Error fetching fees:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFees();
+  }, []);
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentForm.studentId || !paymentForm.amount) return;
+
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/admin/fees/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: paymentForm.studentId,
+          amountPaid: parseInt(paymentForm.amount),
+          paymentMethod: paymentForm.paymentMethod,
+          remarks: paymentForm.remarks,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh fees data
+        const listResponse = await fetch('/api/admin/fees/list');
+        if (listResponse.ok) {
+          const data = await listResponse.json();
+          setFees(data.fees || []);
+        }
+        setShowPaymentForm(false);
+        setPaymentForm({ studentId: '', amount: '', paymentMethod: 'manual', remarks: '' });
+      }
+    } catch (error) {
+      console.error('[v0] Payment error:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/admin/fees/export');
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `fees-report-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('[v0] Export error:', error);
+    }
+  };
 
   const filteredFees = fees.filter(
     (f) =>
@@ -81,16 +117,101 @@ export default function FeesPage() {
   const totalFeesCollected = fees.reduce((sum, f) => sum + f.amountPaid, 0);
   const totalDue = fees.reduce((sum, f) => sum + f.amountDue, 0);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-gray-600">Loading fees data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Fees Management</h1>
-        <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium">
-          <Download className="h-4 w-4" />
-          Export Report
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowPaymentForm(!showPaymentForm)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+          >
+            <Plus className="h-4 w-4" />
+            Record Payment
+          </button>
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+          >
+            <Download className="h-4 w-4" />
+            Export Report
+          </button>
+        </div>
       </div>
+
+      {/* Payment Form */}
+      {showPaymentForm && (
+        <Card className="p-6 bg-blue-50 border-2 border-blue-200">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Record Payment</h3>
+          <form onSubmit={handlePaymentSubmit} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
+              <select
+                value={paymentForm.studentId}
+                onChange={(e) => setPaymentForm({ ...paymentForm, studentId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                required
+              >
+                <option value="">Select Student...</option>
+                {fees.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.studentName} ({f.enrollmentNumber})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={paymentForm.amount}
+                onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder="0"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
+              <select
+                value={paymentForm.paymentMethod}
+                onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="manual">Manual</option>
+                <option value="online">Online</option>
+                <option value="cheque">Cheque</option>
+              </select>
+            </div>
+            <div className="flex gap-2 items-end">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
+              >
+                {submitting ? 'Recording...' : 'Record'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPaymentForm(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid md:grid-cols-3 gap-6">
