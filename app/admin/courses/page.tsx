@@ -55,9 +55,12 @@ export default function CoursesPage() {
 
       if (response.ok) {
         setCourses(courses.filter((c) => c.id !== id));
+        setError(null);
+      } else {
+        setError('Failed to delete course');
       }
     } catch (err) {
-      console.error('Error deleting course:', err);
+      console.error('[v0] Error deleting course:', err);
       setError('Failed to delete course');
     }
   };
@@ -68,10 +71,6 @@ export default function CoursesPage() {
       c.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.level.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleDelete = (id: string) => {
-    setCourses(courses.filter((c) => c.id !== id));
-  };
 
   return (
     <div className="space-y-6">
@@ -104,54 +103,73 @@ export default function CoursesPage() {
       {/* Courses Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
         {filteredCourses.map((course) => (
-          <Card key={course.id} className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{course.name}</h3>
-                <p className="text-sm text-gray-600">
-                  {course.instructor === 'TBD' ? 'Pending Assignment' : `by ${course.instructor}`}
-                </p>
+          <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            {course.imageUrl && (
+              <div className="h-40 bg-gray-200 relative overflow-hidden">
+                <img
+                  src={course.imageUrl}
+                  alt={course.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"%3E%3Crect fill="%23e5e7eb" width="400" height="300"/%3E%3C/svg%3E';
+                  }}
+                />
               </div>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  course.status === 'Active'
-                    ? 'bg-green-100 text-green-800'
-                    : course.status === 'Upcoming'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {course.status}
-              </span>
-            </div>
+            )}
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{course.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    {course.instructor === 'TBD' ? 'Pending Assignment' : `by ${course.instructor}`}
+                  </p>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${
+                    course.status === 'Active'
+                      ? 'bg-green-100 text-green-800'
+                      : course.status === 'Upcoming'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {course.status}
+                </span>
+              </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div>
-                <p className="text-xs text-gray-600 mb-1">Duration</p>
-                <p className="font-semibold text-gray-900">{course.duration}</p>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Duration</p>
+                  <p className="font-semibold text-gray-900">{course.duration} weeks</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Level</p>
+                  <p className="text-sm font-medium text-gray-900">{course.level}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Students</p>
+                  <p className="font-semibold text-gray-900">{course.students}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-gray-600 mb-1">Level</p>
-                <p className="text-sm font-medium text-gray-900">{course.level.split(' to ')[0]}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-600 mb-1">Students</p>
-                <p className="font-semibold text-gray-900">{course.students}</p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
-              <button className="flex-1 flex items-center justify-center gap-2 p-2 hover:bg-blue-100 rounded-lg transition-colors">
-                <Edit className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-600">Edit</span>
-              </button>
-              <button
-                onClick={() => handleDelete(course.id)}
-                className="flex-1 flex items-center justify-center gap-2 p-2 hover:bg-red-100 rounded-lg transition-colors"
-              >
-                <Trash2 className="h-4 w-4 text-red-600" />
-                <span className="text-sm font-medium text-red-600">Delete</span>
-              </button>
+              {course.description && (
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{course.description}</p>
+              )}
+
+              <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
+                <button className="flex-1 flex items-center justify-center gap-2 p-2 hover:bg-blue-100 rounded-lg transition-colors">
+                  <Edit className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-600">Edit</span>
+                </button>
+                <button
+                  onClick={() => handleDelete(course.id)}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 hover:bg-red-100 rounded-lg transition-colors"
+                >
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-600">Delete</span>
+                </button>
+              </div>
             </div>
           </Card>
         ))}

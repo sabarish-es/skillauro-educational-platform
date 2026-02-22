@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Users, BookOpen, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export const metadata = {
   title: 'Skillauro - Learn, Innovate, Succeed',
@@ -31,38 +34,38 @@ const features = [
   },
 ];
 
-const courses = [
-  {
-    id: 1,
-    name: 'Web Development Mastery',
-    instructor: 'Dr. Raj Kumar',
-    students: 342,
-    level: 'Beginner to Advanced',
-  },
-  {
-    id: 2,
-    name: 'React Advanced',
-    instructor: 'Ms. Priya Verma',
-    students: 256,
-    level: 'Intermediate to Advanced',
-  },
-  {
-    id: 3,
-    name: 'Node.js Backend',
-    instructor: 'Prof. Arun Singh',
-    students: 198,
-    level: 'Intermediate to Advanced',
-  },
-  {
-    id: 4,
-    name: 'Python Data Science',
-    instructor: 'Dr. Meera Gupta',
-    students: 287,
-    level: 'Beginner to Intermediate',
-  },
-];
+interface Course {
+  id: string;
+  name: string;
+  instructor: string;
+  students: number;
+  level: string;
+  imageUrl: string;
+  description: string;
+  duration: number;
+}
 
 export default function HomePage() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('/api/admin/courses/list');
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data.courses || []);
+        }
+      } catch (error) {
+        console.error('[v0] Error fetching courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -197,28 +200,52 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {courses.map((course) => (
-              <div key={course.id} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow">
-                <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600"></div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{course.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    By <strong>{course.instructor}</strong>
-                  </p>
-                  <div className="space-y-2 text-sm text-gray-600 mb-4">
-                    <p>📚 {course.students.toLocaleString()} students</p>
-                    <p>🎓 {course.level}</p>
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Loading courses...</p>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No courses available yet. Check back soon!</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {courses.map((course) => (
+                <div key={course.id} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+                  {course.imageUrl ? (
+                    <div className="relative h-48 bg-gray-200">
+                      <Image
+                        src={course.imageUrl}
+                        alt={course.name}
+                        fill
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const img = e.target as HTMLImageElement;
+                          img.src = '/course-default.jpg';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600"></div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{course.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">By <strong>{course.instructor}</strong></p>
+                    <p className="text-xs text-gray-500 mb-4 line-clamp-2">{course.description}</p>
+                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                      <p>📚 {course.students.toLocaleString()} students</p>
+                      <p>🎓 {course.level}</p>
+                    </div>
+                    <Link href="/login">
+                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                        Learn More
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href="/login">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      Learn More
-                    </Button>
-                  </Link>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

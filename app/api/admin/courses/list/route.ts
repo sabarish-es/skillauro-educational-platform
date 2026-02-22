@@ -11,8 +11,11 @@ export async function GET(request: NextRequest) {
     });
 
     const [rows] = await connection.execute(
-      `SELECT id, code, name, description, duration, credits, max_students as maxStudents, 
-              level, status, created_at FROM courses ORDER BY created_at DESC`
+      `SELECT id, code, name, description, duration_weeks as duration, credits, max_students as maxStudents, 
+              course_level as level, status, image_url as imageUrl, instructor_name as instructor, created_at 
+       FROM courses 
+       WHERE status != 'draft'
+       ORDER BY created_at DESC`
     ) as any;
 
     await connection.end();
@@ -22,18 +25,19 @@ export async function GET(request: NextRequest) {
       code: course.code,
       name: course.name,
       description: course.description,
-      duration: course.duration,
+      duration: course.duration || 12,
       credits: course.credits,
       maxStudents: course.maxStudents,
       level: course.level,
       status: course.status,
-      instructor: 'TBD', // Will be linked to faculty in future
-      students: 0, // Will be linked to enrollments in future
+      instructor: course.instructor || 'TBD',
+      imageUrl: course.imageUrl || '/course-default.jpg',
+      students: 0, // Will be calculated from enrollments
     }));
 
     return NextResponse.json({ courses }, { status: 200 });
   } catch (error: any) {
-    console.error('Course list error:', error);
+    console.error('[v0] Course list error:', error);
     return NextResponse.json(
       { message: error.message || 'Failed to fetch courses' },
       { status: 500 }
